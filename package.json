@@ -1,0 +1,28 @@
+{
+  "name": "wdk-proxy",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "lint": "standard",
+    "lint:fix": "standard --fix"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "bare-crypto": "^1.4.0",
+    "bare-events": "^2.5.4",
+    "bare-net": "^2.0.1",
+    "bare-path": "^3.0.0",
+    "bare-process": "^4.1.2",
+    "bare-subprocess": "^5.0.2",
+    "crypto": "npm:bare-node-crypto@^1.0.0",
+    "events": "npm:bare-node-events@^1.0.1",
+    "net": "npm:bare-node-net@^1.0.0",
+    "path": "npm:bare-node-path@^1.0.1",
+    "process": "npm:bare-node-process@^1.0.1",
+    "standard": "^17.1.2",
+    "uuid": "^11.1.0"
+  }
+}
