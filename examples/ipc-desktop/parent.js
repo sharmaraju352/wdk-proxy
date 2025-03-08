@@ -1,7 +1,7 @@
 const { spawn } = require('bare-subprocess')
 const path = require('path')
-const { DesktopIPCTransport } = require('../transport')
-const { ProxyClient } = require('../proxy')
+const { DesktopIPCTransport } = require('../../transport')
+const { ProxyClient } = require('../../proxy')
 global.process = require('process')
 
 function runChild () {

@@ -1,5 +1,5 @@
-const { DesktopIPCTransport } = require('../transport')
-const { ProxyServer } = require('../proxy')
+const { HTTPTransport } = require('../../transport')
+const { ProxyServer } = require('../../proxy')
 const EventEmitter = require('events')
 
 class MathHandler {
@@ -33,19 +33,20 @@ class Handler extends EventEmitter {
 }
 
 const handler = new Handler()
-const transport = new DesktopIPCTransport({ serverOptions: { port: 0 } })
+const transport = new HTTPTransport({
+  serverOptions: { port: 3002 }
+})
 const server = new ProxyServer(transport)
 
 server.exposeHandler(handler)
 
 transport.start().then(() => {
-  const addr = transport.server.address()
-  console.log(JSON.stringify({ port: addr.port }))
+  console.log('HTTP server started on port 3002')
 }).catch(err => {
-  console.error('IPC server failed to start:', err)
+  console.error('Error starting HTTP server:', err)
 })
 
-// Emit heartbeat events every second.
+// Emit heartbeat events via the handler every second.
 setInterval(() => {
   handler.emit('heartbeat', Date.now())
 }, 1000)
