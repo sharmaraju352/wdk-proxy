@@ -1,5 +1,6 @@
 module.exports = {
   BaseTransport: require('./BaseTransport'),
   DesktopIPCTransport: require('./DesktopIPCTransport'),
-  HTTPTransport: require('./HTTPTransport')
+  HTTPTransport: require('./HTTPTransport'),
+  WebSocketTransport: require('./WebSocketTransport')
 }
