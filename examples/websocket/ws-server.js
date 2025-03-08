@@ -1,4 +1,4 @@
-const { HTTPTransport } = require('../../transport')
+const { WebSocketTransport } = require('../../transport')
 const { ProxyServer } = require('../../proxy')
 const EventEmitter = require('events')
 
@@ -33,16 +33,16 @@ class Handler extends EventEmitter {
 }
 
 const handler = new Handler()
-const transport = new HTTPTransport({
-  serverOptions: { port: 3002 }
+const transport = new WebSocketTransport({
+  serverOptions: { port: 3001 }
 })
 const server = new ProxyServer(transport)
 
 server.exposeHandler(handler)
+transport.start().then(() => {
+  console.log('WebSocket server started on port 3001')
+})
 
-transport.start()
-
-// Emit heartbeat events via the handler every second.
 setInterval(() => {
   handler.emit('heartbeat', Date.now())
 }, 1000)
