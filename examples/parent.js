@@ -27,7 +27,7 @@ function runChild () {
   })
 }
 
-async function main () {
+async function run () {
   try {
     const { port } = await runChild()
     console.log(`Parent: Connecting to child on port ${port}`)
@@ -37,16 +37,55 @@ async function main () {
     const client = new ProxyClient(transport)
     const handler = await client.connect()
 
-    const response = await handler.echo('Hello from parent!')
-    console.log('Response from child:', response)
+    // 1. Call a simple remote method
+    const greeting = await handler.hello('world')
+    console.log('IPC Greeting:', greeting)
 
+    // 2. Subscribe to a continuous heartbeat event
+    await handler.on('heartbeat', (data) => {
+      console.log('IPC heartbeat event:', data)
+    })
+
+    // 3. Subscribe to a one-time event using once
+    await handler.once('onceEvent', (data) => {
+      console.log('Received IPC onceEvent:', data)
+    })
+
+    // 4. Trigger the one-time event from server
+    setTimeout(async () => {
+      const res = await handler.emitTestEvent('This is a one-time IPC event')
+      console.log('emitTestEvent response:', res)
+    }, 3000)
+
+    // 5. Nested call
+    const sum = await handler.math.add(10, 5)
+    console.log('Nested math.add result:', sum)
+
+    // 6. Promise chaining
+    const chainedResult = await handler.chainExample(sum)
+      .then(result => handler.math.multiply(result, 2))
+    console.log('Chained result (sum * 2):', chainedResult)
+
+    // 7. Error handling with a non-existent method
+    try {
+      await handler.nonExistentMethod()
+    } catch (err) {
+      console.error('Expected error for non-existent method:', err.message)
+    }
+
+    // 8. Promise chaining using .then on the returned promise directly
+    handler.hello('chained world').then(result => {
+      console.log('Promise chaining hello:', result)
+    })
+
+    // Close the client
     setTimeout(() => {
       client.close()
       process.exit(0)
-    }, 5000)
+    }, 10000)
   } catch (err) {
     console.error('Error:', err)
   }
 }
 
-main()
+run()
