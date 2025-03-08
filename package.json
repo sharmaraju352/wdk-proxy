@@ -4,7 +4,9 @@
   "main": "index.js",
   "scripts": {
     "lint": "standard",
-    "lint:fix": "standard --fix"
+    "lint:fix": "standard --fix",
+    "bundle-android": "bare-pack --format bundle.cjs examples/ipc-mobile/child.js -p android --linked --out ./android.bundle.cjs",
+    "bundle-ios": "bare-pack --format bundle.cjs examples/ipc-mobile/child.js -p ios --linked --out ./ios.bundle.cjs"
   },
   "keywords": [],
   "author": "",
@@ -30,5 +32,8 @@
     "standard": "^17.1.2",
     "url": "npm:bare-node-url@^1.0.1",
     "uuid": "^11.1.0"
+  },
+  "devDependencies": {
+    "bare-pack": "^1.2.4"
   }
 }
