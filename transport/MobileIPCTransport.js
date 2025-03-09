@@ -47,7 +47,11 @@ class MobileIPCTransport extends BaseTransport {
     this.IPC.on('data', (data) => {
       try {
         const msg = JSON.parse(data)
-        this._emit('message', msg)
+        if (msg && msg.type) {
+          this._emit(msg.type, msg)
+        } else {
+          this._emit('message', msg)
+        }
       } catch (err) {
         this._emit('error', new Error('Failed to parse message: ' + err.message))
       }
