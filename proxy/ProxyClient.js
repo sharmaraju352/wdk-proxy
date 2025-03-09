@@ -1,11 +1,11 @@
 const EventEmitter = require('events')
-const { v4: uuidv4 } = require('uuid')
 
 class ProxyClient extends EventEmitter {
   constructor (transport) {
     super()
     this.transport = transport
     this.pendingRequests = new Map()
+    this.requestIdCounter = 0
 
     this.transport.on('response', (msg) => {
       const { id, error, result } = msg
@@ -26,9 +26,13 @@ class ProxyClient extends EventEmitter {
     })
   }
 
+  _generateId () {
+    return `${Date.now()}-${this.requestIdCounter++}`
+  }
+
   _sendRequest (request) {
     return new Promise((resolve, reject) => {
-      const id = uuidv4()
+      const id = this._generateId()
       request.id = id
       this.pendingRequests.set(id, { resolve, reject })
       this.transport.send(request).catch(reject)
@@ -45,12 +49,9 @@ class ProxyClient extends EventEmitter {
     const createProxy = (path = []) => {
       return new Proxy(() => {}, {
         get (target, prop) {
-          // Allow normal promise chaining
           if (prop === 'then' && path.length === 0) {
             return undefined
           }
-
-          // Intercept 'on' and 'once' to subscribe to server events
           if (prop === 'on') {
             return async (event, callback) => {
               await self._subscribe(event, false)
@@ -63,7 +64,6 @@ class ProxyClient extends EventEmitter {
               self.once(event, callback)
             }
           }
-
           return createProxy([...path, prop])
         },
         apply (target, thisArg, args) {
