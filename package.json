@@ -1,17 +1,31 @@
 {
   "name": "wdk-proxy",
+  "description": "wdk proxy",
   "version": "1.0.0",
   "main": "index.js",
+  
   "scripts": {
     "lint": "standard",
     "lint:fix": "standard --fix",
     "bundle-android": "bare-pack --format bundle.cjs examples/ipc-mobile/child.js -p android --linked --out ./android.bundle.cjs",
     "bundle-ios": "bare-pack --format bundle.cjs examples/ipc-mobile/child.js -p ios --linked --out ./ios.bundle.cjs"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "description": "",
+  "author": {
+    "name": "prdn",
+    "email": "paolo@bitfinex.com"
+  },
+  "maintainers": [
+    {
+      "name": "prdn",
+      "email": "paolo@bitfinex.com"
+    }
+  ],
+  "keywords": [
+    "tether",
+    "proxy",
+    "wdk"
+  ],
+  "license": "Apache-2.0",
   "dependencies": {
     "bare-crypto": "^1.4.0",
     "bare-events": "^2.5.4",
