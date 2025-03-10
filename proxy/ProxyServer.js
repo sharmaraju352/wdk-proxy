@@ -15,16 +15,22 @@ class ProxyServer {
   constructor (transport) {
     this.transport = transport
     this.handler = null
+    this._requestListener = null
+    this._subscribeListener = null
   }
 
   exposeHandler (handler) {
+    if (this.handler && this.transport.removeListener) {
+      this.transport.removeListener('request', this._requestListener)
+      this.transport.removeListener('subscribe', this._subscribeListener)
+    }
+
     this.handler = handler
 
-    this.transport.on('request', async (msg, respond) => {
+    this._requestListener = async (msg, respond) => {
       const { method, args } = msg
       const parts = method.split('.')
       let target = this.handler
-
       for (const part of parts) {
         if (target == null) break
         target = target[part]
@@ -32,16 +38,15 @@ class ProxyServer {
       if (typeof target !== 'function') {
         return respond(new TypeError(`Method "${method}" not found`))
       }
-
       try {
         const result = await target.apply(this.handler, args)
         respond(null, result)
       } catch (err) {
         respond(err)
       }
-    })
+    }
 
-    this.transport.on('subscribe', (msg, respond) => {
+    this._subscribeListener = (msg, respond) => {
       const { event, once } = msg
       if (!this.handler || typeof this.handler.on !== 'function') {
         return respond(new Error('Handler does not support events'))
@@ -56,9 +61,11 @@ class ProxyServer {
       } else {
         this.handler.on(event, listener)
       }
-
       respond(null, `subscribed to ${event}`)
-    })
+    }
+
+    this.transport.on('request', this._requestListener)
+    this.transport.on('subscribe', this._subscribeListener)
   }
 
   emitEvent (event, data) {
@@ -74,6 +81,14 @@ class ProxyServer {
   close () {
     if (typeof this.transport.close === 'function') {
       this.transport.close()
+    }
+    if (this.transport.removeListener) {
+      if (this._requestListener) {
+        this.transport.removeListener('request', this._requestListener)
+      }
+      if (this._subscribeListener) {
+        this.transport.removeListener('subscribe', this._subscribeListener)
+      }
     }
   }
 }
