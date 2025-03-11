@@ -27,8 +27,13 @@ export default function () {
       const client = new ProxyClient(transport);
       const handler = await client.connect();
 
-      console.log('Handler created')
-
+      const methods = ['log', 'debug', 'info', 'warn', 'error']
+      methods.forEach(level => {
+        client.on(level, (message) => {
+          console[level]('Child Log:', message);
+        });
+      })
+      
       // 1. Call a simple remote method.
       const greeting = await handler.hello("Expo");
       console.log("IPC Greeting:", greeting);
