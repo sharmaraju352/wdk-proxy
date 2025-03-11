@@ -32,6 +32,7 @@ class Handler extends EventEmitter {
   }
 
   async hello (name) {
+    console.log('Hello called')
     return `Hello ${name}`
   }
 
