@@ -23,13 +23,15 @@ function runChild () {
 
     const child = spawn('bare', [childScript])
 
-    child.stdout.on('data', (data) => {
-      const msg = JSON.parse(data)
-      resolve({ port: msg.port, child })
-    })
-
-    child.stderr.on('data', (data) => {
-      console.error('Child error: ', String(data))
+    child.stdout.once('data', (data) => {
+      try {
+        const lines = data.toString().trim().split('\n')
+        const firstLine = lines[0]
+        const msg = JSON.parse(firstLine)
+        resolve({ port: msg.port, child })
+      } catch (e) {
+        reject(e)
+      }
     })
 
     child.on('exit', (code) => {
@@ -48,6 +50,14 @@ async function run () {
     const transport = new DesktopIPCTransport({ clientOptions: { port, host: 'localhost' } })
     await transport.connect()
     const client = new ProxyClient(transport)
+
+    const methods = ['log', 'debug', 'info', 'warn', 'error']
+    methods.forEach(level => {
+      client.on(level, (message) => {
+        console[level]('Child Log:', message);
+      });
+    })
+
     const handler = await client.connect()
 
     // 1. Call a simple remote method
