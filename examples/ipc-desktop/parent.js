@@ -54,8 +54,8 @@ async function run () {
     const methods = ['log', 'debug', 'info', 'warn', 'error']
     methods.forEach(level => {
       client.on(level, (message) => {
-        console[level]('Child Log:', message);
-      });
+        console[level]('Child Log:', message)
+      })
     })
 
     const handler = await client.connect()
