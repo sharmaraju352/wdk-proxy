@@ -32,6 +32,13 @@ class ProxyClient extends EventEmitter {
         }
         this.pendingRequests.delete(id)
       }
+    });
+
+    // Forward log events.
+    ['log', 'debug', 'info', 'warn', 'error'].forEach(level => {
+      this.transport.on(level, (msg) => {
+        this.emit(level, msg.payload.message)
+      })
     })
 
     this.transport.on('event', (msg) => {

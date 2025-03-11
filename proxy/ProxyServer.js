@@ -17,6 +17,26 @@ class ProxyServer {
     this.handler = null
     this._requestListener = null
     this._subscribeListener = null
+    this._patchConsole()
+  }
+
+  _patchConsole () {
+    if (global.__wdkProxyConsolePatched) return
+    global.__wdkProxyConsolePatched = true
+
+    const methods = ['log', 'debug', 'info', 'warn', 'error']
+    methods.forEach(method => {
+      const original = console[method]
+      console[method] = (...args) => {
+        original.apply(console, args)
+        if (this.transport && typeof this.transport.send === 'function') {
+          this.transport.send({
+            type: method,
+            payload: { message: args.join(' ') }
+          })
+        }
+      }
+    })
   }
 
   exposeHandler (handler) {
