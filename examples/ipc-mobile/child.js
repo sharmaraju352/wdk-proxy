@@ -33,6 +33,7 @@ class Handler extends EventEmitter {
   }
 
   async hello (name) {
+    console.log('Hello called')
     return `Hello ${name}`
   }
 
@@ -54,7 +55,9 @@ server.exposeHandler(handler)
 transport.start()
 
 setInterval(() => {
+  console.log('before heartbeat')
   handler.emit('heartbeat', Date.now())
+  console.log('after heartbeat')
 }, 1000)
 
 console.log('Mobile IPC Child started')
