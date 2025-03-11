@@ -60,5 +60,7 @@ transport.start().then(() => {
 
 // Emit heartbeat events every second.
 setInterval(() => {
+  console.log('before heartbeat')
   handler.emit('heartbeat', Date.now())
+  console.log('after heartbeat')
 }, 1000)

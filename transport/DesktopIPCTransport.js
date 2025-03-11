@@ -23,6 +23,8 @@ class DesktopIPCTransport extends BaseTransport {
     this.socket = null
     this.server = null
     this.pendingMessages = []
+    this.DELIMITER = '||END_OF_MSG||'
+    this._buffer = ''
   }
 
   async start () {
@@ -31,26 +33,33 @@ class DesktopIPCTransport extends BaseTransport {
     }
     this.server = net.createServer((socket) => {
       this.socket = socket
+      this._buffer = ''
       socket.on('data', (data) => {
-        let msg
-        try {
-          msg = JSON.parse(data.toString())
-        } catch (err) {
-          return
-        }
-        if (msg.type && this._listeners[msg.type]) {
-          if (msg.type === 'request' || msg.type === 'subscribe') {
-            this._emit(msg.type, msg, (err, result) => {
-              const response = {
-                type: 'response',
-                id: msg.id,
-                error: err ? err.message : null,
-                result
-              }
-              this.send(response)
-            })
-          } else {
-            this._emit(msg.type, msg)
+        this._buffer += data.toString()
+        const parts = this._buffer.split(this.DELIMITER)
+        this._buffer = parts.pop()
+        for (const part of parts) {
+          if (!part.trim()) continue
+          let msg
+          try {
+            msg = JSON.parse(part)
+          } catch (err) {
+            continue
+          }
+          if (msg.type && this._listeners[msg.type]) {
+            if (msg.type === 'request' || msg.type === 'subscribe') {
+              this._emit(msg.type, msg, (err, result) => {
+                const response = {
+                  type: 'response',
+                  id: msg.id,
+                  error: err ? err.message : null,
+                  result
+                }
+                this.send(response)
+              })
+            } else {
+              this._emit(msg.type, msg)
+            }
           }
         }
       })
@@ -77,17 +86,24 @@ class DesktopIPCTransport extends BaseTransport {
       () => {
         this.pendingMessages.forEach(data => this.socket.write(data))
         this.pendingMessages = []
+        this._buffer = ''
       }
     )
     this.socket.on('data', (data) => {
-      let msg
-      try {
-        msg = JSON.parse(data.toString())
-      } catch (err) {
-        return
-      }
-      if (msg.type && this._listeners[msg.type]) {
-        this._emit(msg.type, msg)
+      this._buffer += data.toString()
+      const parts = this._buffer.split(this.DELIMITER)
+      this._buffer = parts.pop()
+      for (const part of parts) {
+        if (!part.trim()) continue
+        let msg
+        try {
+          msg = JSON.parse(part)
+        } catch (err) {
+          continue
+        }
+        if (msg.type && this._listeners[msg.type]) {
+          this._emit(msg.type, msg)
+        }
       }
     })
     return new Promise((resolve, reject) => {
@@ -97,7 +113,7 @@ class DesktopIPCTransport extends BaseTransport {
   }
 
   async send (message) {
-    const data = JSON.stringify(message)
+    const data = JSON.stringify(message) + this.DELIMITER
     if (this.socket && !this.socket.destroyed) {
       this.socket.write(data)
     } else {
